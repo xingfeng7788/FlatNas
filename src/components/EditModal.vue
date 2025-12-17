@@ -43,6 +43,7 @@ const form = ref<Omit<NavItem, "id">>({
   url: "",
   lanUrl: "",
   urlSecond: "",
+  urlThird: "",
   icon: "",
   description1: "",
   description2: "",
@@ -530,6 +531,7 @@ watch(
         form.value = {
           ...props.data,
           urlSecond: props.data.urlSecond || "",
+          urlThird: props.data.urlThird || "",
           description1: props.data.description1 || "",
           description2: props.data.description2 || "",
           description3: props.data.description3 || "",
@@ -567,6 +569,7 @@ watch(
           url: "",
           lanUrl: "",
           urlSecond: "",
+          urlThird: "",
           icon: "",
           color: "bg-blue-50 text-blue-600",
           titleColor: "",
@@ -789,6 +792,18 @@ const submit = () => {
             type="text"
             placeholder="https://backup.example.com"
             class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-purple-500 outline-none transition-colors"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1"
+            >备用外网2 <span class="text-gray-400 text-xs">(选填，强制备用外网2模式时使用)</span></label
+          >
+          <input
+            v-model="form.urlThird"
+            type="text"
+            placeholder="https://backup2.example.com"
+            class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-pink-500 outline-none transition-colors"
           />
         </div>
 

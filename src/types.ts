@@ -4,6 +4,7 @@ export interface NavItem {
   url: string;
   lanUrl?: string;
   urlSecond?: string;
+  urlThird?: string;
   icon: string;
   // Horizontal mode custom text lines
   description1?: string;

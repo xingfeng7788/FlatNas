@@ -49,11 +49,11 @@ const currentGroupId = ref<string>("");
 const isLanMode = ref(false);
 const latency = ref(0);
 const isChecking = ref(true);
-const forceMode = useStorage<"auto" | "lan" | "wan" | "wan2">("flat-nas-network-mode", "auto");
+const forceMode = useStorage<"auto" | "lan" | "wan" | "wan2" | "wan3">("flat-nas-network-mode", "auto");
 
 const effectiveIsLan = computed(() => {
   if (forceMode.value === "lan") return true;
-  if (forceMode.value === "wan" || forceMode.value === "wan2") return false;
+  if (forceMode.value === "wan" || forceMode.value === "wan2" || forceMode.value === "wan3") return false;
   return isLanMode.value;
 });
 
@@ -67,6 +67,7 @@ const toggleForceMode = () => {
   if (forceMode.value === "auto") forceMode.value = "lan";
   else if (forceMode.value === "lan") forceMode.value = "wan";
   else if (forceMode.value === "wan") forceMode.value = "wan2";
+  else if (forceMode.value === "wan2") forceMode.value = "wan3";
   else forceMode.value = "auto";
 };
 
@@ -491,6 +492,9 @@ const handleCardClick = (item: NavItem) => {
   } else if (forceMode.value === "wan2") {
     // 强制备用外网模式：优先使用备用外网链接，没有则使用主外网链接
     targetUrl = item.urlSecond || item.url;
+  } else if (forceMode.value === "wan3") {
+    // 强制备用外网2模式：优先使用备用外网2链接，没有则使用备用外网1 -> 主外网链接
+    targetUrl = item.urlThird || item.urlSecond || item.url;
   } else {
     // 自动模式
     if (store.isLogged && isLanMode.value && item.lanUrl) {
@@ -847,6 +851,13 @@ const handleMenuWan2Open = () => {
   closeContextMenu();
   if (!item || !item.urlSecond) return;
   window.open(item.urlSecond, "_blank");
+};
+
+const handleMenuWan3Open = () => {
+  const item = contextMenuItem.value;
+  closeContextMenu();
+  if (!item || !item.urlThird) return;
+  window.open(item.urlThird, "_blank");
 };
 
 const handleMenuEdit = () => {
@@ -1279,6 +1290,7 @@ onMounted(() => {
                   'bg-green-100 text-green-600 hover:bg-green-200': forceMode === 'lan',
                   'bg-blue-100 text-blue-600 hover:bg-blue-200': forceMode === 'wan',
                   'bg-purple-100 text-purple-600 hover:bg-purple-200': forceMode === 'wan2',
+                  'bg-pink-100 text-pink-600 hover:bg-pink-200': forceMode === 'wan3',
                 }"
               >
                 {{
@@ -1288,7 +1300,9 @@ onMounted(() => {
                       ? "强制内网"
                       : forceMode === "wan"
                         ? "强制外网"
-                        : "强制备用"
+                        : forceMode === "wan2"
+                          ? "强制备用"
+                          : "强制备用2"
                 }}
               </button>
               <div
@@ -2143,13 +2157,20 @@ onMounted(() => {
       >
         <span>🛰️</span> 外网访问
       </div>
-      <div
+      <li
         v-if="contextMenuItem?.urlSecond"
         @click="handleMenuWan2Open"
-        class="px-4 py-2 hover:bg-purple-50 text-purple-700 cursor-pointer flex items-center gap-2 text-sm transition-colors border-b border-gray-100"
+        class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 text-gray-700"
       >
-        <span>🛰️</span> 备用外网
-      </div>
+        <span class="text-lg">☁️</span> 打开备用外网
+      </li>
+      <li
+        v-if="contextMenuItem?.urlThird"
+        @click="handleMenuWan3Open"
+        class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2 text-gray-700"
+      >
+        <span class="text-lg">☁️</span> 打开备用外网2
+      </li>
 
       <!-- Docker Actions -->
       <template v-if="contextMenuItem?.containerId">
