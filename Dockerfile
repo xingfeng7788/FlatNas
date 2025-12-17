@@ -43,7 +43,7 @@ ENV NODE_ENV=production
 # 3. 安装后端依赖
 COPY package.json package-lock.json ./
 # 此时 npm 会走你的 192.168... 代理，速度会非常快
-RUN apk add --no-cache python3 make g++ && npm install --omit=dev && apk del python3 make g++
+RUN apk add --no-cache python3 make g++ && npm install --omit=dev --registry=https://registry.npmmirror.com && apk del python3 make g++
 
 # 4. 拷贝文件
 COPY server/ ./server/

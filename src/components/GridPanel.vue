@@ -49,11 +49,11 @@ const currentGroupId = ref<string>("");
 const isLanMode = ref(false);
 const latency = ref(0);
 const isChecking = ref(true);
-const forceMode = useStorage<"auto" | "lan" | "wan">("flat-nas-network-mode", "auto");
+const forceMode = useStorage<"auto" | "lan" | "wan" | "wan2">("flat-nas-network-mode", "auto");
 
 const effectiveIsLan = computed(() => {
   if (forceMode.value === "lan") return true;
-  if (forceMode.value === "wan") return false;
+  if (forceMode.value === "wan" || forceMode.value === "wan2") return false;
   return isLanMode.value;
 });
 
@@ -66,6 +66,7 @@ const isSidebarEnabled = computed(() => {
 const toggleForceMode = () => {
   if (forceMode.value === "auto") forceMode.value = "lan";
   else if (forceMode.value === "lan") forceMode.value = "wan";
+  else if (forceMode.value === "wan") forceMode.value = "wan2";
   else forceMode.value = "auto";
 };
 
@@ -487,6 +488,9 @@ const handleCardClick = (item: NavItem) => {
   } else if (forceMode.value === "wan") {
     // 强制外网模式：只使用外网链接
     targetUrl = item.url;
+  } else if (forceMode.value === "wan2") {
+    // 强制备用外网模式：优先使用备用外网链接，没有则使用主外网链接
+    targetUrl = item.urlSecond || item.url;
   } else {
     // 自动模式
     if (store.isLogged && isLanMode.value && item.lanUrl) {
@@ -836,6 +840,13 @@ const handleMenuWanOpen = () => {
   closeContextMenu();
   if (!item || !item.url) return;
   window.open(item.url, "_blank");
+};
+
+const handleMenuWan2Open = () => {
+  const item = contextMenuItem.value;
+  closeContextMenu();
+  if (!item || !item.urlSecond) return;
+  window.open(item.urlSecond, "_blank");
 };
 
 const handleMenuEdit = () => {
@@ -1267,9 +1278,18 @@ onMounted(() => {
                   'bg-gray-100 text-gray-400 hover:bg-gray-200': forceMode === 'auto',
                   'bg-green-100 text-green-600 hover:bg-green-200': forceMode === 'lan',
                   'bg-blue-100 text-blue-600 hover:bg-blue-200': forceMode === 'wan',
+                  'bg-purple-100 text-purple-600 hover:bg-purple-200': forceMode === 'wan2',
                 }"
               >
-                {{ forceMode === "auto" ? "自动" : forceMode === "lan" ? "强制内网" : "强制外网" }}
+                {{
+                  forceMode === "auto"
+                    ? "自动"
+                    : forceMode === "lan"
+                      ? "强制内网"
+                      : forceMode === "wan"
+                        ? "强制外网"
+                        : "强制备用"
+                }}
               </button>
               <div
                 class="flex items-center gap-2 px-3 h-full rounded-full text-[10px] font-medium cursor-pointer hover:bg-gray-100 transition-all select-none"
@@ -2122,6 +2142,13 @@ onMounted(() => {
         class="px-4 py-2 hover:bg-blue-50 text-blue-700 cursor-pointer flex items-center gap-2 text-sm transition-colors border-b border-gray-100"
       >
         <span>🛰️</span> 外网访问
+      </div>
+      <div
+        v-if="contextMenuItem?.urlSecond"
+        @click="handleMenuWan2Open"
+        class="px-4 py-2 hover:bg-purple-50 text-purple-700 cursor-pointer flex items-center gap-2 text-sm transition-colors border-b border-gray-100"
+      >
+        <span>🛰️</span> 备用外网
       </div>
 
       <!-- Docker Actions -->

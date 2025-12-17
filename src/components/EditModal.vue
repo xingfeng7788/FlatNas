@@ -42,6 +42,7 @@ const form = ref<Omit<NavItem, "id">>({
   title: "",
   url: "",
   lanUrl: "",
+  urlSecond: "",
   icon: "",
   description1: "",
   description2: "",
@@ -528,6 +529,7 @@ watch(
         // 编辑模式：回填数据
         form.value = {
           ...props.data,
+          urlSecond: props.data.urlSecond || "",
           description1: props.data.description1 || "",
           description2: props.data.description2 || "",
           description3: props.data.description3 || "",
@@ -564,6 +566,7 @@ watch(
           title: "",
           url: "",
           lanUrl: "",
+          urlSecond: "",
           icon: "",
           color: "bg-blue-50 text-blue-600",
           titleColor: "",
@@ -774,6 +777,18 @@ const submit = () => {
             type="text"
             placeholder="http://192.168.1.x:8080"
             class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-green-500 outline-none transition-colors"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1"
+            >备用外网 <span class="text-gray-400 text-xs">(选填，强制备用外网模式时使用)</span></label
+          >
+          <input
+            v-model="form.urlSecond"
+            type="text"
+            placeholder="https://backup.example.com"
+            class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-purple-500 outline-none transition-colors"
           />
         </div>
 

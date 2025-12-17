@@ -17,8 +17,8 @@ export const useMainStore = defineStore("main", () => {
   });
 
   // Lucky STUN Data
-  const luckyStunData = ref<unknown>(null);
-  socket.on("lucky:stun", (data: unknown) => {
+  const luckyStunData = ref<any>(null);
+  socket.on("lucky:stun", (data: any) => {
     luckyStunData.value = data;
   });
 
