@@ -45,6 +45,7 @@ export interface NavGroup {
     | string;
   cardBgColor?: string;
   cardTitleColor?: string;
+  cardTitleSize?: number;
   showCardBackground?: boolean;
   backgroundImage?: string;
   backgroundBlur?: number;
@@ -157,6 +158,7 @@ export interface WidgetConfig {
   isPublic: boolean;
   hideOnMobile?: boolean;
   opacity?: number;
+  textColor?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
   layouts?: {
@@ -223,4 +225,15 @@ export interface TodoItem {
   id: string;
   text: string;
   done: boolean;
+}
+
+export interface LuckyStunData {
+  ts?: number;
+  data?: {
+    stun?: string;
+    port?: string | number;
+    ip?: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
 }

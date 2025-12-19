@@ -14,6 +14,8 @@ import ClockWeatherWidget from "./ClockWeatherWidget.vue";
 import RssWidget from "./RssWidget.vue";
 import DockerWidget from "./DockerWidget.vue";
 import SystemStatusWidget from "./SystemStatusWidget.vue";
+import CustomCssWidget from "./CustomCssWidget.vue";
+import FileTransferWidget from "./FileTransferWidget.vue";
 
 defineProps<{
   widget: WidgetConfig;
@@ -41,6 +43,8 @@ defineProps<{
   <RssWidget v-else-if="widget.type === 'rss'" :widget="widget" />
   <DockerWidget v-else-if="widget.type === 'docker'" :widget="widget" />
   <SystemStatusWidget v-else-if="widget.type === 'system-status'" :widget="widget" />
+  <CustomCssWidget v-else-if="widget.type === 'custom-css'" :widget="widget" />
+  <FileTransferWidget v-else-if="widget.type === 'file-transfer'" :widget="widget" />
   <div v-else class="flex items-center justify-center h-full bg-red-50 text-red-500 text-xs p-2">
     Unknown: {{ widget.type }} ({{ widget.id }})
   </div>

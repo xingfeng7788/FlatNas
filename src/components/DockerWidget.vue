@@ -176,6 +176,8 @@ const performMockAction = (id: string, action: string) => {
   containers.value = [...containers.value];
 };
 
+const errorCount = ref(0);
+
 const fetchContainers = async () => {
   if (useMock.value) {
     if (!containers.value.length) {
@@ -210,18 +212,43 @@ const fetchContainers = async () => {
   try {
     const headers = store.getHeaders();
     const res = await fetch("/api/docker/containers", { headers });
+
+    if (!res.ok) {
+      errorCount.value++;
+      if (errorCount.value >= 3) {
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = null;
+        error.value = "Docker polling stopped due to connection errors.";
+      }
+      return;
+    }
+
     const data = await res.json();
     if (data.success) {
       containers.value = (data.data || []) as DockerContainer[];
+      errorCount.value = 0;
       error.value = "";
     } else {
       containers.value = [];
       error.value = data.error || "Docker 不可用";
+      if (data.error && data.error.includes("Docker not available")) {
+        errorCount.value++;
+        if (errorCount.value >= 3) {
+          if (pollTimer) clearInterval(pollTimer);
+          pollTimer = null;
+          error.value = "Docker polling stopped: Docker not available.";
+        }
+      }
     }
   } catch (e: unknown) {
     containers.value = [];
     const msg = e instanceof Error ? e.message : String(e);
     error.value = "网络错误: " + msg;
+    errorCount.value++;
+    if (errorCount.value >= 3) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+    }
   }
 };
 
@@ -268,16 +295,34 @@ const handleAction = async (id: string, action: string) => {
   }
 };
 
+const startPolling = () => {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(() => {
+    if (document.visibilityState === "hidden") return;
+    fetchContainers();
+  }, 10000);
+};
+
+const stopPolling = () => {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = null;
+};
+
+const handleVisibilityChange = () => {
+  if (document.visibilityState === "hidden") stopPolling();
+  else startPolling();
+};
+
 onMounted(() => {
   fetchContainers();
   fetchDockerInfo(true);
-  pollTimer = setInterval(() => {
-    fetchContainers();
-  }, 5000);
+  startPolling();
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 });
 
 onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer);
+  stopPolling();
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
 });
 
 const getContainerLanUrl = (c: DockerContainer): string => {
