@@ -903,18 +903,66 @@ const contextMenuItem = ref<NavItem | null>(null);
 const contextMenuGroupId = ref<string | undefined>(undefined);
 let ignoreNextNativeContextMenu = false;
 
-const openContextMenu = (e: MouseEvent, item: NavItem, groupId?: string) => {
+// Long Press Logic
+const longPressTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+
+const handleTouchStart = (e: TouchEvent, item: NavItem, groupId?: string) => {
+  if (longPressTimer.value) clearTimeout(longPressTimer.value);
+  
+  longPressTimer.value = setTimeout(() => {
+    openContextMenu(e, item, groupId);
+    if (navigator.vibrate) navigator.vibrate(50);
+  }, 500);
+};
+
+const handleTouchEnd = () => {
+  if (longPressTimer.value) {
+    clearTimeout(longPressTimer.value);
+    longPressTimer.value = null;
+  }
+};
+
+const handleTouchMove = () => {
+  if (longPressTimer.value) {
+    clearTimeout(longPressTimer.value);
+    longPressTimer.value = null;
+  }
+};
+
+const openContextMenu = (e: MouseEvent | TouchEvent, item: NavItem, groupId?: string) => {
   if (!store.isLogged) return;
 
-  e.preventDefault();
+  if (e.cancelable && e.type !== "touchstart") {
+     e.preventDefault();
+  }
+
   contextMenuItem.value = item;
   contextMenuGroupId.value = groupId;
+
+  let clientX = 0;
+  let clientY = 0;
+  if ('touches' in e && e.touches.length > 0) {
+    const t = e.touches[0];
+    if (t) {
+      clientX = t.clientX;
+      clientY = t.clientY;
+    }
+  } else if ('changedTouches' in e && e.changedTouches.length > 0) {
+    const t = e.changedTouches[0];
+    if (t) {
+      clientX = t.clientX;
+      clientY = t.clientY;
+    }
+  } else {
+    clientX = (e as MouseEvent).clientX;
+    clientY = (e as MouseEvent).clientY;
+  }
 
   // Prevent menu from going off-screen (basic logic)
   const menuWidth = 150;
   const menuHeight = 100;
-  let x = e.clientX;
-  let y = e.clientY;
+  let x = clientX;
+  let y = clientY;
 
   if (x + menuWidth > window.innerWidth) x -= menuWidth;
   if (y + menuHeight > window.innerHeight) y -= menuHeight;
@@ -1853,6 +1901,9 @@ onMounted(() => {
                 @click="handleCardClick(item)"
                 @mousedown.right.prevent.stop="handleContextMenuPointerDown($event, item, group.id)"
                 @contextmenu.prevent.stop="handleContextMenu($event, item, group.id)"
+                @touchstart="handleTouchStart($event, item, group.id)"
+                @touchend="handleTouchEnd"
+                @touchmove="handleTouchMove"
                 class="flex items-center justify-center cursor-pointer transition-all select-none relative group overflow-hidden"
                 :class="[
                   isEditMode ? 'animate-pulse cursor-move ring-2 ring-blue-400' : '',
