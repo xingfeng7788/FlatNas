@@ -1,10 +1,9 @@
 name: Build Multi-Arch Image
 
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -39,8 +38,10 @@ jobs:
           # 这里开启了三个架构：AMD64, ARM64, ARMv7
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          # 指定版本号 1.0.34，不加 latest
-          tags: qdnas/flatnas:1.0.37
+          # 指定版本号为 release tag (例如 v1.0.35) 以及 latest
+          tags: |
+            qq510023514/flatnas:${{ github.ref_name }}
+            qq510023514/flatnas:latest
           # 开启缓存
           cache-from: type=gha
           cache-to: type=gha,mode=max
